@@ -15,9 +15,9 @@
             "playlists": []
         },
         {
-            "firstName": "Your",
-            "lastName": "Name",
-            "email": "your@email.com",
+            "firstName": "Murtaza",
+            "lastName": "Hussain",
+            "email": "Murtaza.hussain.1@stonybrook.edu",
             "passwordHash": "$2a$10$dPEwsAVi1ojv2RfxxTpZjuKSAbep7zEKb5myegm.ATbQ4sJk4agGu",
             "playlists": []
         }
@@ -210,7 +210,7 @@
             ]
         },
         {
-            "ownerEmail": "your@email.com",
+            "ownerEmail": "Murtaza.hussain.1@stonybrook.edu",
             "name": "My Top Songs 2024",
             "songs": [
                 {
@@ -246,7 +246,7 @@
             ]
         },
         {
-            "ownerEmail": "your@email.com",
+            "ownerEmail": "Murtaza.hussain.1@stonybrook.edu",
             "name": "Study & Focus",
             "songs": [
                 {
