@@ -2,7 +2,6 @@ import { useContext } from 'react'
 import { useHistory } from 'react-router-dom'
 import SongCard from './SongCard.js'
 import MUIEditSongModal from './MUIEditSongModal'
-import EditToolbar from './EditToolbar'
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
@@ -52,22 +51,37 @@ function WorkspaceScreen() {
     }
 
     return (
-        <Box>
-            {/* Playlist Header */}
-            <Box sx={{ p: 2, bgcolor: '#e0e0e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                    <Typography variant="h5">{store.currentList.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        By: {store.currentList.ownerEmail}
-                    </Typography>
-                </Box>
-                
-                {/* Edit Toolbar - only show for owners */}
+        <Box sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+            {/* Playlist Header with Title */}
+            <Box sx={{ 
+                p: 2, 
+                bgcolor: '#e0e0e0', 
+                borderBottom: '1px solid #ccc',
+                flexShrink: 0
+            }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                    {store.currentList.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    By: {store.currentList.ownerEmail}
+                </Typography>
+            </Box>
+
+            {/* Toolbar Row */}
+            <Box sx={{ 
+                p: 1, 
+                bgcolor: '#d0d0d0', 
+                display: 'flex', 
+                justifyContent: 'flex-end',
+                gap: 1,
+                flexShrink: 0
+            }}>
                 {canEdit && (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                    <>
                         <Button
                             variant="contained"
                             color="primary"
+                            size="small"
                             startIcon={<AddIcon />}
                             onClick={handleAddSong}
                         >
@@ -76,6 +90,7 @@ function WorkspaceScreen() {
                         <Button
                             variant="contained"
                             color="secondary"
+                            size="small"
                             startIcon={<UndoIcon />}
                             onClick={handleUndo}
                             disabled={!store.canUndo()}
@@ -85,41 +100,31 @@ function WorkspaceScreen() {
                         <Button
                             variant="contained"
                             color="secondary"
+                            size="small"
                             startIcon={<RedoIcon />}
                             onClick={handleRedo}
                             disabled={!store.canRedo()}
                         >
                             Redo
                         </Button>
-                        <Button
-                            variant="contained"
-                            color="error"
-                            startIcon={<CloseIcon />}
-                            onClick={handleClose}
-                        >
-                            Close
-                        </Button>
-                    </Box>
+                    </>
                 )}
-
-                {/* Close button for non-owners/guests */}
-                {!canEdit && (
-                    <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<CloseIcon />}
-                        onClick={handleClose}
-                    >
-                        Close
-                    </Button>
-                )}
+                <Button
+                    variant="contained"
+                    color="error"
+                    size="small"
+                    startIcon={<CloseIcon />}
+                    onClick={handleClose}
+                >
+                    Close
+                </Button>
             </Box>
 
             {/* Songs List */}
-            <Box id="list-selector-list">
+            <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
                 <List 
                     id="playlist-cards" 
-                    sx={{overflow: 'scroll', height: '70vh', width: '100%', bgcolor: '#8000F00F'}}
+                    sx={{ width: '100%', bgcolor: '#8000F00F', minHeight: '100%' }}
                 >
                     {store.currentList.songs.length === 0 ? (
                         <Typography sx={{ p: 3, textAlign: 'center', color: '#666' }}>
@@ -137,8 +142,9 @@ function WorkspaceScreen() {
                         ))
                     )}
                 </List>            
-                { modalJSX }
             </Box>
+            
+            { modalJSX }
         </Box>
     )
 }
