@@ -15,9 +15,7 @@ const HomeScreen = () => {
     const { auth } = useContext(AuthContext);
 
     useEffect(() => {
-        if (auth.isGuest) {
-            store.loadAllPlaylists();
-        } else if (auth.loggedIn) {
+        if (auth.isGuest || auth.loggedIn) {
             store.loadAllPlaylists();
         }
     }, [auth.isGuest, auth.loggedIn]);
@@ -26,46 +24,41 @@ const HomeScreen = () => {
         store.createNewList();
     }
 
-    let listCard = "";
-    if (store && store.idNamePairs) {
-        listCard = 
-            <List sx={{width: '100%', bgcolor: 'background.paper', mb:"20px" }}>
-            {
-                store.idNamePairs.map((pair) => (
-                    <PlaylistCard
-                        key={pair._id}
-                        idNamePair={pair}
-                        selected={false}
-                    />
-                ))
-            }
-            </List>;
-    }
-
     return (
-        <div id="playlist-selector">
-            <div id="list-selector-heading">
+        <Box sx={{ padding: 2 }}>
+            {/* Header */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 {!auth.isGuest && auth.loggedIn && (
-                    <Fab sx={{transform:"translate(-20%, 0%)"}}
+                    <Fab
                         color="primary" 
                         aria-label="add"
-                        id="add-list-button"
+                        size="medium"
                         onClick={handleCreateNewList}
+                        sx={{ mr: 2 }}
                     >
                         <AddIcon />
                     </Fab>
                 )}
-                <Typography variant="h5" sx={{ marginLeft: (!auth.isGuest && auth.loggedIn) ? 0 : 2 }}>
+                <Typography variant="h5">
                     {auth.isGuest ? "All Playlists (Guest)" : "Playlists"}
                 </Typography>
-            </div>
+            </Box>
             
             {/* Search and Sort Bar */}
             <SearchSortBar />
             
-            <Box sx={{bgcolor:"background.paper"}} id="list-selector-list">
+            {/* Playlist List */}
+            <Box sx={{ bgcolor: "background.paper", borderRadius: 1 }}>
                 {store.idNamePairs && store.idNamePairs.length > 0 ? (
-                    listCard
+                    <List sx={{ width: '100%' }}>
+                        {store.idNamePairs.map((pair) => (
+                            <PlaylistCard
+                                key={pair._id}
+                                idNamePair={pair}
+                                selected={false}
+                            />
+                        ))}
+                    </List>
                 ) : (
                     <Typography sx={{ p: 3, textAlign: 'center', color: '#666' }}>
                         No playlists found
@@ -73,7 +66,7 @@ const HomeScreen = () => {
                 )}
                 <MUIDeleteModal />
             </Box>
-        </div>
+        </Box>
     )
 }
 

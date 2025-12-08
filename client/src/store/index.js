@@ -22,7 +22,7 @@ export const GlobalStoreActionType = {
     REMOVE_SONG: "REMOVE_SONG",
     HIDE_MODALS: "HIDE_MODALS",
     LOAD_ALL_PLAYLISTS: "LOAD_ALL_PLAYLISTS",
-    SET_SEARCH_RESULTS: "SET_SEARCH_RESULTS"
+    SET_FILTERED_PLAYLISTS: "SET_FILTERED_PLAYLISTS"
 }
 
 const tps = new jsTPS();
@@ -45,10 +45,7 @@ function GlobalStoreContextProvider(props) {
         newListCounter: 0,
         listNameActive: false,
         listIdMarkedForDeletion: null,
-        listMarkedForDeletion: null,
-        viewMode: 'all',
-        searchText: '',
-        sortBy: 'name'
+        listMarkedForDeletion: null
     });
     const history = useHistory();
 
@@ -87,6 +84,7 @@ function GlobalStoreContextProvider(props) {
                     ...store,
                     currentModal: CurrentModal.NONE,
                     idNamePairs: payload,
+                    allPlaylists: payload,
                     currentList: null
                 });
             }
@@ -99,13 +97,10 @@ function GlobalStoreContextProvider(props) {
                     currentList: null
                 });
             }
-            case GlobalStoreActionType.SET_SEARCH_RESULTS: {
+            case GlobalStoreActionType.SET_FILTERED_PLAYLISTS: {
                 return setStore({
                     ...store,
-                    idNamePairs: payload.results,
-                    viewMode: payload.viewMode,
-                    searchText: payload.searchText,
-                    sortBy: payload.sortBy || store.sortBy
+                    idNamePairs: payload
                 });
             }
             case GlobalStoreActionType.MARK_LIST_FOR_DELETION: {
@@ -159,71 +154,12 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
-    // SEARCH PLAYLISTS
-    store.searchPlaylists = function (searchText, viewMode) {
-        let results = [...store.allPlaylists];
-        
-        if (searchText && searchText.trim() !== '') {
-            const searchLower = searchText.toLowerCase();
-            if (viewMode === 'user') {
-                results = results.filter(p => 
-                    p.ownerEmail && p.ownerEmail.toLowerCase().includes(searchLower)
-                );
-            } else {
-                results = results.filter(p => 
-                    p.name.toLowerCase().includes(searchLower)
-                );
-            }
-        }
-
-        // Apply current sort
-        results = sortResults(results, store.sortBy);
-
+    // SET FILTERED PLAYLISTS (for search/sort)
+    store.setFilteredPlaylists = function (playlists) {
         storeReducer({
-            type: GlobalStoreActionType.SET_SEARCH_RESULTS,
-            payload: { results, viewMode, searchText }
+            type: GlobalStoreActionType.SET_FILTERED_PLAYLISTS,
+            payload: playlists
         });
-    }
-
-    // SORT PLAYLISTS
-    store.sortPlaylists = function (sortBy) {
-        let results = sortResults([...store.idNamePairs], sortBy);
-        
-        storeReducer({
-            type: GlobalStoreActionType.SET_SEARCH_RESULTS,
-            payload: { 
-                results, 
-                viewMode: store.viewMode, 
-                searchText: store.searchText,
-                sortBy 
-            }
-        });
-    }
-
-    function sortResults(results, sortBy) {
-        switch (sortBy) {
-            case 'name':
-                return results.sort((a, b) => a.name.localeCompare(b.name));
-            case 'name-desc':
-                return results.sort((a, b) => b.name.localeCompare(a.name));
-            case 'date':
-                return results.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-            case 'date-asc':
-                return results.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
-            case 'owner':
-                return results.sort((a, b) => (a.ownerEmail || '').localeCompare(b.ownerEmail || ''));
-            default:
-                return results;
-        }
-    }
-
-    // SET VIEW MODE
-    store.setViewMode = function (viewMode) {
-        if (viewMode === 'home' && auth.loggedIn) {
-            store.loadIdNamePairs();
-        } else {
-            store.loadAllPlaylists();
-        }
     }
 
     store.changeListName = function (id, newName) {
@@ -322,7 +258,7 @@ function GlobalStoreContextProvider(props) {
     store.deleteList = function (id) {
         async function processDelete(id) {
             await storeRequestSender.deletePlaylistById(id);
-            store.loadIdNamePairs();
+            store.loadAllPlaylists();
             history.push("/");
         }
         processDelete(id);

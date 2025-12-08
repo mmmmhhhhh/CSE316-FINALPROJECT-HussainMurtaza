@@ -2,101 +2,100 @@ import { useContext, useState } from 'react';
 import { GlobalStoreContext } from '../store';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchIcon from '@mui/icons-material/Search';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import HomeIcon from '@mui/icons-material/Home';
-import GroupIcon from '@mui/icons-material/Group';
-import PersonIcon from '@mui/icons-material/Person';
 
 export default function SearchSortBar() {
     const { store } = useContext(GlobalStoreContext);
     const [searchText, setSearchText] = useState('');
     const [sortBy, setSortBy] = useState('name');
-    const [viewMode, setViewMode] = useState('all');
+
+    const applyFilterAndSort = (text, sort) => {
+        if (!store.allPlaylists || store.allPlaylists.length === 0) return;
+        
+        let results = [...store.allPlaylists];
+        
+        if (text && text.trim() !== '') {
+            const searchLower = text.toLowerCase();
+            results = results.filter(p => 
+                p.name.toLowerCase().includes(searchLower) ||
+                (p.ownerEmail && p.ownerEmail.toLowerCase().includes(searchLower))
+            );
+        }
+        
+        switch (sort) {
+            case 'name':
+                results.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'name-desc':
+                results.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            case 'owner':
+                results.sort((a, b) => (a.ownerEmail || '').localeCompare(b.ownerEmail || ''));
+                break;
+            default:
+                break;
+        }
+        
+        store.setFilteredPlaylists(results);
+    };
 
     const handleSearchChange = (event) => {
+        event.stopPropagation();
         const text = event.target.value;
         setSearchText(text);
-        store.searchPlaylists(text, viewMode);
+        applyFilterAndSort(text, sortBy);
     };
 
     const handleSortChange = (event) => {
-        const sortOption = event.target.value;
-        setSortBy(sortOption);
-        store.sortPlaylists(sortOption);
+        event.stopPropagation();
+        const sort = event.target.value;
+        setSortBy(sort);
+        applyFilterAndSort(searchText, sort);
     };
 
-    const handleViewChange = (event, newView) => {
-        if (newView !== null) {
-            setViewMode(newView);
-            store.setViewMode(newView);
-            setSearchText('');
-        }
+    const handleClick = (event) => {
+        event.stopPropagation();
     };
 
     return (
-        <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            p: 2, 
-            bgcolor: '#f5f5f5',
-            borderRadius: 1,
-            mb: 2
-        }}>
-            {/* View Mode Toggle */}
-            <ToggleButtonGroup
-                value={viewMode}
-                exclusive
-                onChange={handleViewChange}
-                size="small"
-            >
-                <ToggleButton value="home" title="My Playlists">
-                    <HomeIcon />
-                </ToggleButton>
-                <ToggleButton value="all" title="All Playlists">
-                    <GroupIcon />
-                </ToggleButton>
-                <ToggleButton value="user" title="Search by User">
-                    <PersonIcon />
-                </ToggleButton>
-            </ToggleButtonGroup>
-
-            {/* Search Field */}
+        <Box 
+            onClick={handleClick}
+            sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 2, 
+                padding: 2, 
+                backgroundColor: '#e0e0e0',
+                marginBottom: 2,
+                borderRadius: 1,
+                position: 'relative',
+                zIndex: 10
+            }}
+        >
             <TextField
+                label="Search playlists..."
+                variant="outlined"
                 size="small"
-                placeholder={viewMode === 'user' ? "Search by username..." : "Search playlists..."}
                 value={searchText}
                 onChange={handleSearchChange}
-                sx={{ flex: 1, bgcolor: 'white' }}
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <SearchIcon />
-                        </InputAdornment>
-                    ),
-                }}
+                onClick={handleClick}
+                sx={{ flex: 1, backgroundColor: 'white' }}
             />
 
-            {/* Sort Dropdown */}
             <FormControl size="small" sx={{ minWidth: 150 }}>
                 <InputLabel>Sort By</InputLabel>
                 <Select
                     value={sortBy}
                     label="Sort By"
                     onChange={handleSortChange}
-                    sx={{ bgcolor: 'white' }}
+                    onClick={handleClick}
+                    sx={{ backgroundColor: 'white' }}
                 >
                     <MenuItem value="name">Name (A-Z)</MenuItem>
                     <MenuItem value="name-desc">Name (Z-A)</MenuItem>
-                    <MenuItem value="date">Date (Newest)</MenuItem>
-                    <MenuItem value="date-asc">Date (Oldest)</MenuItem>
                     <MenuItem value="owner">Owner (A-Z)</MenuItem>
                 </Select>
             </FormControl>
