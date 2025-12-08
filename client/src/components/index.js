@@ -9,6 +9,7 @@ import MUIEditSongModal from './MUIEditSongModal'
 import MUIErrorModal from './MUIErrorModal'
 import PlaylistCard from './PlaylistCard'
 import RegisterScreen from './RegisterScreen'
+import SearchSortBar from './SearchSortBar'
 import SongCard from './SongCard'
 import SplashScreen from './SplashScreen'
 import Statusbar from './Statusbar'
@@ -27,6 +28,7 @@ export {
     MUIErrorModal,
     PlaylistCard,
     RegisterScreen,
+    SearchSortBar,
     SongCard,
     SplashScreen,
     Statusbar,

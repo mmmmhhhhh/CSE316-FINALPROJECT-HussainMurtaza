@@ -3,6 +3,7 @@ import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth'
 import PlaylistCard from './PlaylistCard.js'
 import MUIDeleteModal from './MUIDeleteModal'
+import SearchSortBar from './SearchSortBar'
 import AddIcon from '@mui/icons-material/Add';
 import Fab from '@mui/material/Fab'
 import List from '@mui/material/List';
@@ -15,20 +16,18 @@ const HomeScreen = () => {
 
     useEffect(() => {
         if (auth.isGuest) {
-            // Guest users see all playlists
             store.loadAllPlaylists();
-        } else {
-            // Logged in users see their playlists
-            store.loadIdNamePairs();
+        } else if (auth.loggedIn) {
+            store.loadAllPlaylists();
         }
-    }, [auth.isGuest]);
+    }, [auth.isGuest, auth.loggedIn]);
 
     function handleCreateNewList() {
         store.createNewList();
     }
 
     let listCard = "";
-    if (store) {
+    if (store && store.idNamePairs) {
         listCard = 
             <List sx={{width: '100%', bgcolor: 'background.paper', mb:"20px" }}>
             {
@@ -43,14 +42,10 @@ const HomeScreen = () => {
             </List>;
     }
 
-    // Determine the heading text
-    let headingText = auth.isGuest ? "All Playlists" : "Your Playlists";
-
     return (
         <div id="playlist-selector">
             <div id="list-selector-heading">
-                {/* Only show Add button for logged-in users */}
-                {!auth.isGuest && (
+                {!auth.isGuest && auth.loggedIn && (
                     <Fab sx={{transform:"translate(-20%, 0%)"}}
                         color="primary" 
                         aria-label="add"
@@ -60,17 +55,22 @@ const HomeScreen = () => {
                         <AddIcon />
                     </Fab>
                 )}
-                <Typography variant="h5" sx={{ marginLeft: auth.isGuest ? 2 : 0 }}>
-                    {headingText}
+                <Typography variant="h5" sx={{ marginLeft: (!auth.isGuest && auth.loggedIn) ? 0 : 2 }}>
+                    {auth.isGuest ? "All Playlists (Guest)" : "Playlists"}
                 </Typography>
-                {auth.isGuest && (
-                    <Typography variant="body2" sx={{ marginLeft: 2, color: '#666' }}>
-                        (Viewing as Guest - Login to create playlists)
+            </div>
+            
+            {/* Search and Sort Bar */}
+            <SearchSortBar />
+            
+            <Box sx={{bgcolor:"background.paper"}} id="list-selector-list">
+                {store.idNamePairs && store.idNamePairs.length > 0 ? (
+                    listCard
+                ) : (
+                    <Typography sx={{ p: 3, textAlign: 'center', color: '#666' }}>
+                        No playlists found
                     </Typography>
                 )}
-            </div>
-            <Box sx={{bgcolor:"background.paper"}} id="list-selector-list">
-                {listCard}
                 <MUIDeleteModal />
             </Box>
         </div>
