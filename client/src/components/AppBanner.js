@@ -1,24 +1,25 @@
 import { useContext, useState } from 'react';
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom';
 import AuthContext from '../auth';
-import { GlobalStoreContext } from '../store'
-
-import EditToolbar from './EditToolbar'
-
-import AccountCircle from '@mui/icons-material/AccountCircle';
+import { GlobalStoreContext } from '../store';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import MenuItem from '@mui/material/MenuItem';
+import Menu from '@mui/material/Menu';
+import Button from '@mui/material/Button';
+import HomeIcon from '@mui/icons-material/Home';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
+import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 
 export default function AppBanner() {
     const { auth } = useContext(AuthContext);
     const { store } = useContext(GlobalStoreContext);
     const [anchorEl, setAnchorEl] = useState(null);
     const isMenuOpen = Boolean(anchorEl);
+    const history = useHistory();
 
     const handleProfileMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -31,48 +32,40 @@ export default function AppBanner() {
     const handleLogout = () => {
         handleMenuClose();
         auth.logoutUser();
-    }
+    };
 
-    const handleHouseClick = () => {
-        store.closeCurrentList();
-    }
+    const handleLogin = () => {
+        handleMenuClose();
+        history.push('/login');
+    };
 
-    const menuId = 'primary-search-account-menu';
-    
-    const loggedOutMenu = (
-        <Menu
-            anchorEl={anchorEl}
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-            }}
-            id={menuId}
-            keepMounted
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-            }}
-            open={isMenuOpen}
-            onClose={handleMenuClose}
-        >
-            <MenuItem onClick={handleMenuClose}><Link to='/login/'>Login</Link></MenuItem>
-            <MenuItem onClick={handleMenuClose}><Link to='/register/'>Create New Account</Link></MenuItem>
-        </Menu>
-    );
+    const handleRegister = () => {
+        handleMenuClose();
+        history.push('/register');
+    };
 
+    const handleExitGuest = () => {
+        handleMenuClose();
+        auth.logoutUser();
+    };
+
+    const handleHome = () => {
+        history.push('/');
+    };
+
+    const handlePlaylists = () => {
+        store.loadAllPlaylists();
+        history.push('/');
+    };
+
+    const handleSongsCatalog = () => {
+        history.push('/songs');
+    };
+
+    // Menu for logged-in users
     const loggedInMenu = (
         <Menu
             anchorEl={anchorEl}
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-            }}
-            id={menuId}
-            keepMounted
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-            }}
             open={isMenuOpen}
             onClose={handleMenuClose}
         >
@@ -80,88 +73,113 @@ export default function AppBanner() {
         </Menu>
     );
 
+    // Menu for guests
     const guestMenu = (
         <Menu
             anchorEl={anchorEl}
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-            }}
-            id={menuId}
-            keepMounted
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-            }}
             open={isMenuOpen}
             onClose={handleMenuClose}
         >
-            <MenuItem onClick={handleMenuClose}><Link to='/login/'>Login</Link></MenuItem>
-            <MenuItem onClick={handleMenuClose}><Link to='/register/'>Create New Account</Link></MenuItem>
-            <MenuItem onClick={handleLogout}>Exit Guest Mode</MenuItem>
+            <MenuItem onClick={handleLogin}>Login</MenuItem>
+            <MenuItem onClick={handleRegister}>Create Account</MenuItem>
+            <MenuItem onClick={handleExitGuest}>Exit Guest Mode</MenuItem>
         </Menu>
     );
 
-    let editToolbar = "";
+    // Menu for logged-out users (on splash screen)
+    const loggedOutMenu = (
+        <Menu
+            anchorEl={anchorEl}
+            open={isMenuOpen}
+            onClose={handleMenuClose}
+        >
+            <MenuItem onClick={handleLogin}>Login</MenuItem>
+            <MenuItem onClick={handleRegister}>Create Account</MenuItem>
+        </Menu>
+    );
+
     let menu = loggedOutMenu;
-    
     if (auth.loggedIn) {
         menu = loggedInMenu;
-        if (store.currentList) {
-            editToolbar = <EditToolbar />;
-        }
     } else if (auth.isGuest) {
         menu = guestMenu;
     }
-    
-    function getAccountMenu(loggedIn, isGuest) {
-        if (loggedIn) {
-            let userInitials = auth.getUserInitials();
-            return <div>{userInitials}</div>;
-        } else if (isGuest) {
-            return <div style={{ fontSize: '14px' }}>Guest</div>;
-        } else {
-            return <AccountCircle />;
-        }
+
+    // Get user initials or show Guest
+    let userDisplay = "?";
+    if (auth.loggedIn && auth.user) {
+        userDisplay = auth.user.firstName.charAt(0) + auth.user.lastName.charAt(0);
+    } else if (auth.isGuest) {
+        userDisplay = "Guest";
     }
 
-    // Determine banner title
-    let bannerTitle = "The Playlister";
-
     return (
-        <Box sx={{flexGrow: 1}}>
+        <Box sx={{ flexGrow: 1 }}>
             <AppBar position="static" sx={{ bgcolor: '#c41bf0' }}>
                 <Toolbar>
-                    <Typography                        
-                        variant="h4"
+                    {/* Home Icon */}
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        onClick={handleHome}
+                        sx={{ mr: 2 }}
+                    >
+                        <HomeIcon />
+                    </IconButton>
+
+                    {/* Navigation Buttons - show when logged in or guest */}
+                    {(auth.loggedIn || auth.isGuest) && (
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Button
+                                color="inherit"
+                                startIcon={<QueueMusicIcon />}
+                                onClick={handlePlaylists}
+                            >
+                                Playlists
+                            </Button>
+                            <Button
+                                color="inherit"
+                                startIcon={<LibraryMusicIcon />}
+                                onClick={handleSongsCatalog}
+                            >
+                                Songs Catalog
+                            </Button>
+                        </Box>
+                    )}
+
+                    {/* Title - centered */}
+                    <Typography
+                        variant="h5"
                         noWrap
                         component="div"
-                        sx={{ display: { xs: 'none', sm: 'block' } }}                        
+                        sx={{ flexGrow: 1, textAlign: 'center', fontWeight: 'bold' }}
                     >
-                        <Link onClick={handleHouseClick} style={{ textDecoration: 'none', color: 'white' }} to='/'>⌂</Link>
+                        The Playlister
                     </Typography>
-                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-                        <Typography variant="h5" sx={{ color: 'white' }}>
-                            {bannerTitle}
-                        </Typography>
+
+                    {/* User Avatar/Menu */}
+                    <Box
+                        onClick={handleProfileMenuOpen}
+                        sx={{
+                            cursor: 'pointer',
+                            bgcolor: auth.isGuest ? '#666' : '#8B5CF6',
+                            borderRadius: '50%',
+                            width: 40,
+                            height: 40,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: auth.isGuest ? '10px' : '14px'
+                        }}
+                    >
+                        {userDisplay}
                     </Box>
-                    {editToolbar}
-                    <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-                        <IconButton
-                            size="large"
-                            edge="end"
-                            aria-label="account of current user"
-                            aria-controls={menuId}
-                            aria-haspopup="true"
-                            onClick={handleProfileMenuOpen}
-                            color="inherit"
-                        >
-                            { getAccountMenu(auth.loggedIn, auth.isGuest) }
-                        </IconButton>
-                    </Box>
+                    {menu}
                 </Toolbar>
             </AppBar>
-            {menu}
         </Box>
     );
 }

@@ -11,6 +11,7 @@ import PlaylistCard from './PlaylistCard'
 import RegisterScreen from './RegisterScreen'
 import SearchSortBar from './SearchSortBar'
 import SongCard from './SongCard'
+import SongsCatalogScreen from './SongsCatalogScreen'
 import SplashScreen from './SplashScreen'
 import Statusbar from './Statusbar'
 import WorkspaceScreen from './WorkspaceScreen'
@@ -30,6 +31,7 @@ export {
     RegisterScreen,
     SearchSortBar,
     SongCard,
+    SongsCatalogScreen,
     SplashScreen,
     Statusbar,
     WorkspaceScreen,
