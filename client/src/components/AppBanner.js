@@ -38,6 +38,7 @@ export default function AppBanner() {
     }
 
     const menuId = 'primary-search-account-menu';
+    
     const loggedOutMenu = (
         <Menu
             anchorEl={anchorEl}
@@ -58,7 +59,8 @@ export default function AppBanner() {
             <MenuItem onClick={handleMenuClose}><Link to='/register/'>Create New Account</Link></MenuItem>
         </Menu>
     );
-    const loggedInMenu = 
+
+    const loggedInMenu = (
         <Menu
             anchorEl={anchorEl}
             anchorOrigin={{
@@ -75,29 +77,60 @@ export default function AppBanner() {
             onClose={handleMenuClose}
         >
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
-        </Menu>        
+        </Menu>
+    );
+
+    const guestMenu = (
+        <Menu
+            anchorEl={anchorEl}
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            id={menuId}
+            keepMounted
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            open={isMenuOpen}
+            onClose={handleMenuClose}
+        >
+            <MenuItem onClick={handleMenuClose}><Link to='/login/'>Login</Link></MenuItem>
+            <MenuItem onClick={handleMenuClose}><Link to='/register/'>Create New Account</Link></MenuItem>
+            <MenuItem onClick={handleLogout}>Exit Guest Mode</MenuItem>
+        </Menu>
+    );
 
     let editToolbar = "";
     let menu = loggedOutMenu;
+    
     if (auth.loggedIn) {
         menu = loggedInMenu;
         if (store.currentList) {
             editToolbar = <EditToolbar />;
         }
+    } else if (auth.isGuest) {
+        menu = guestMenu;
     }
     
-    function getAccountMenu(loggedIn) {
-        let userInitials = auth.getUserInitials();
-        console.log("userInitials: " + userInitials);
-        if (loggedIn) 
+    function getAccountMenu(loggedIn, isGuest) {
+        if (loggedIn) {
+            let userInitials = auth.getUserInitials();
             return <div>{userInitials}</div>;
-        else
+        } else if (isGuest) {
+            return <div style={{ fontSize: '14px' }}>Guest</div>;
+        } else {
             return <AccountCircle />;
+        }
     }
+
+    // Determine banner title
+    let bannerTitle = "The Playlister";
 
     return (
         <Box sx={{flexGrow: 1}}>
-            <AppBar position="static">
+            <AppBar position="static" sx={{ bgcolor: '#c41bf0' }}>
                 <Toolbar>
                     <Typography                        
                         variant="h4"
@@ -107,8 +140,13 @@ export default function AppBanner() {
                     >
                         <Link onClick={handleHouseClick} style={{ textDecoration: 'none', color: 'white' }} to='/'>⌂</Link>
                     </Typography>
-                    <Box sx={{ flexGrow: 1 }}>{editToolbar}</Box>
-                    <Box sx={{ height: "90px", display: { xs: 'none', md: 'flex' } }}>
+                    <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+                        <Typography variant="h5" sx={{ color: 'white' }}>
+                            {bannerTitle}
+                        </Typography>
+                    </Box>
+                    {editToolbar}
+                    <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
                         <IconButton
                             size="large"
                             edge="end"
@@ -118,14 +156,12 @@ export default function AppBanner() {
                             onClick={handleProfileMenuOpen}
                             color="inherit"
                         >
-                            { getAccountMenu(auth.loggedIn) }
+                            { getAccountMenu(auth.loggedIn, auth.isGuest) }
                         </IconButton>
                     </Box>
                 </Toolbar>
             </AppBar>
-            {
-                menu
-            }
+            {menu}
         </Box>
     );
 }

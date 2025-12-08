@@ -5,21 +5,23 @@ import authRequestSender from './requests'
 const AuthContext = createContext();
 console.log("create AuthContext: " + AuthContext);
 
-// THESE ARE ALL THE TYPES OF UPDATES TO OUR AUTH STATE THAT CAN BE PROCESSED
 export const AuthActionType = {
     GET_LOGGED_IN: "GET_LOGGED_IN",
     LOGIN_USER: "LOGIN_USER",
     LOGOUT_USER: "LOGOUT_USER",
-    REGISTER_USER: "REGISTER_USER"
+    REGISTER_USER: "REGISTER_USER",
+    LOGIN_GUEST: "LOGIN_GUEST"
 }
 
 function AuthContextProvider(props) {
     const [auth, setAuth] = useState({
         user: null,
         loggedIn: false,
+        isGuest: false,
         errorMessage: null
     });
     const history = useHistory();
+    
     const setError = (message) => {
         setAuth((prev) => ({
             ...prev,
@@ -27,8 +29,6 @@ function AuthContextProvider(props) {
         }));
     };
 
-
-// eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         auth.getLoggedIn();
     }, []);
@@ -40,6 +40,7 @@ function AuthContextProvider(props) {
                 return setAuth({
                     user: payload.user,
                     loggedIn: payload.loggedIn,
+                    isGuest: false,
                     errorMessage: null
                 });
             }
@@ -47,6 +48,7 @@ function AuthContextProvider(props) {
                 return setAuth({
                     user: payload.user,
                     loggedIn: payload.loggedIn,
+                    isGuest: false,
                     errorMessage: payload.errorMessage
                 })
             }
@@ -54,6 +56,7 @@ function AuthContextProvider(props) {
                 return setAuth({
                     user: null,
                     loggedIn: false,
+                    isGuest: false,
                     errorMessage: null
                 })
             }
@@ -61,7 +64,16 @@ function AuthContextProvider(props) {
                 return setAuth({
                     user: payload.user,
                     loggedIn: payload.loggedIn,
+                    isGuest: false,
                     errorMessage: payload.errorMessage
+                })
+            }
+            case AuthActionType.LOGIN_GUEST: {
+                return setAuth({
+                    user: null,
+                    loggedIn: false,
+                    isGuest: true,
+                    errorMessage: null
                 })
             }
             default:
@@ -80,7 +92,6 @@ function AuthContextProvider(props) {
                 }
             });
         } catch (error) {
-            // If there's an error, user is not logged in
             authReducer({
                 type: AuthActionType.GET_LOGGED_IN,
                 payload: {
@@ -95,7 +106,7 @@ function AuthContextProvider(props) {
         console.log("REGISTERING USER");
         try {
             const response = await authRequestSender.registerUser(firstName, lastName, email, password, passwordVerify);
-            console.log("Registered Sucessfully");
+            console.log("Registered Successfully");
             authReducer({
                 type: AuthActionType.REGISTER_USER,
                 payload: {
@@ -144,6 +155,14 @@ function AuthContextProvider(props) {
         }
     }
 
+    auth.loginAsGuest = function () {
+        authReducer({
+            type: AuthActionType.LOGIN_GUEST,
+            payload: null
+        })
+        history.push("/");
+    }
+
     auth.logoutUser = async function () {
         try {
             await authRequestSender.logoutUser();
@@ -154,6 +173,12 @@ function AuthContextProvider(props) {
             history.push("/");
         } catch (error) {
             console.error("Logout error:", error);
+            // Even if logout fails on server, clear local state
+            authReducer({
+                type: AuthActionType.LOGOUT_USER,
+                payload: null
+            })
+            history.push("/");
         }
     }
 
@@ -163,7 +188,6 @@ function AuthContextProvider(props) {
             initials += auth.user.firstName.charAt(0);
             initials += auth.user.lastName.charAt(0);
         }
-        console.log("user initials: " + initials);
         return initials;
     }
 

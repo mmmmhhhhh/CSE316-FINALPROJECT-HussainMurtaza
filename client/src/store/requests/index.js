@@ -1,9 +1,3 @@
-/*
-    This is our http api, which we use to send requests to
-    our back-end API. Now refactored to use Fetch instead
-    of Axios for all HTTP operations.
-*/
-
 const BASE_URL = 'http://localhost:4000/store';
 
 const fetchWithCredentials = async (url, options = {}) => {
@@ -14,7 +8,6 @@ const fetchWithCredentials = async (url, options = {}) => {
         },
         ...options,
     };
-
     const response = await fetch(url, config);
     return response.json();
 };
@@ -44,6 +37,10 @@ export const getPlaylistPairs = () => {
     return fetchWithCredentials(`${BASE_URL}/playlistpairs/`);
 };
 
+export const getAllPlaylists = () => {
+    return fetchWithCredentials(`${BASE_URL}/playlists/`);
+};
+
 export const updatePlaylistById = (id, playlist) => {
     return fetchWithCredentials(`${BASE_URL}/playlist/${id}`, {
         method: 'PUT',
@@ -58,6 +55,7 @@ const apis = {
     deletePlaylistById,
     getPlaylistById,
     getPlaylistPairs,
+    getAllPlaylists,
     updatePlaylistById
 };
 
