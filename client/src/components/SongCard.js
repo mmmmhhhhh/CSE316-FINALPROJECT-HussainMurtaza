@@ -4,44 +4,52 @@ import Button from '@mui/material/Button';
 
 function SongCard(props) {
     const { store } = useContext(GlobalStoreContext);
-    const { song, index } = props;
+    const { song, index, canEdit } = props;
 
     function handleDragStart(event) {
+        if (!canEdit) return;
         event.dataTransfer.setData("song", index);
     }
 
     function handleDragOver(event) {
+        if (!canEdit) return;
         event.preventDefault();
     }
 
     function handleDragEnter(event) {
+        if (!canEdit) return;
         event.preventDefault();
     }
 
     function handleDragLeave(event) {
+        if (!canEdit) return;
         event.preventDefault();
     }
 
     function handleDrop(event) {
+        if (!canEdit) return;
         event.preventDefault();
         let targetIndex = index;
         let sourceIndex = Number(event.dataTransfer.getData("song"));
-
-        // UPDATE THE LIST
         store.addMoveSongTransaction(sourceIndex, targetIndex);
     }
+
     function handleRemoveSong(event) {
-        store.addRemoveSongTransaction(song, index);
+        event.stopPropagation();
+        if (canEdit) {
+            store.addRemoveSongTransaction(song, index);
+        }
     }
+
     function handleClick(event) {
-        // DOUBLE CLICK IS FOR SONG EDITING
-        if (event.detail === 2) {
+        if (event.detail === 2 && canEdit) {
             console.log("double clicked");
             store.showEditSongModal(index, song);
         }
     }
 
     let cardClass = "list-card unselected-list-card";
+
     return (
         <div
             key={index}
@@ -52,22 +60,28 @@ function SongCard(props) {
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            draggable="true"
+            draggable={canEdit ? "true" : "false"}
             onClick={handleClick}
         >
             {index + 1}.
-            <a
+            
                 id={'song-' + index + '-link'}
                 className="song-link"
-                href={"https://www.youtube.com/watch?v=" + song.youTubeId}>
+                href={"https://www.youtube.com/watch?v=" + song.youTubeId}
+            >
                 {song.title} ({song.year}) by {song.artist}
             </a>
-            <Button
-                sx={{transform:"translate(-5%, -5%)", width:"5px", height:"30px"}}
-                variant="contained"
-                id={"remove-song-" + index}
-                className="list-card-button"
-                onClick={handleRemoveSong}>{"\u2715"}</Button>
+            {canEdit && (
+                <Button
+                    sx={{transform:"translate(-5%, -5%)", width:"5px", height:"30px"}}
+                    variant="contained"
+                    id={"remove-song-" + index}
+                    className="list-card-button"
+                    onClick={handleRemoveSong}
+                >
+                    {"\u2715"}
+                </Button>
+            )}
         </div>
     );
 }
