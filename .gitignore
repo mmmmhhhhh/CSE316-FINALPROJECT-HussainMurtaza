@@ -3,3 +3,5 @@ server/node_modules
 server/.envnode_modules/
 server/.env
 .env
+.DS_Store
+node_modules/
