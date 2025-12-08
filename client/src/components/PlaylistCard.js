@@ -4,28 +4,28 @@ import AuthContext from '../auth'
 import Box from '@mui/material/Box';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from '@mui/material/IconButton';
 import ListItem from '@mui/material/ListItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import YouTubePlayerModal from './YouTubePlayerModal';
 
 function PlaylistCard(props) {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     const [editActive, setEditActive] = useState(false);
     const [text, setText] = useState("");
+    const [expanded, setExpanded] = useState(false);
+    const [playModalOpen, setPlayModalOpen] = useState(false);
+    const [playlistData, setPlaylistData] = useState(null);
     const { idNamePair, selected } = props;
 
     function handleLoadList(event, id) {
-        console.log("handleLoadList for " + id);
+        event.stopPropagation();
         if (!event.target.disabled) {
-            let _id = event.target.id;
-            if (_id.indexOf('list-card-text-') >= 0)
-                _id = ("" + _id).substring("list-card-text-".length);
-
-            console.log("load " + event.target.id);
-
-            // Use viewPlaylist for guests, setCurrentList for logged-in users
             if (auth.isGuest) {
                 store.viewPlaylist(id);
             } else {
@@ -52,9 +52,55 @@ function PlaylistCard(props) {
     async function handleDeleteList(event, id) {
         event.stopPropagation();
         if (!auth.isGuest) {
-            let _id = event.target.id;
-            _id = ("" + _id).substring("delete-list-".length);
             store.markListForDeletion(id);
+        }
+    }
+
+    async function handlePlayClick(event) {
+        event.stopPropagation();
+        // Fetch full playlist data
+        try {
+            const response = await fetch(`http://localhost:4000/store/playlist/${idNamePair._id}`, {
+                credentials: 'include'
+            });
+            const data = await response.json();
+            if (data.success) {
+                setPlaylistData(data.playlist);
+                setPlayModalOpen(true);
+            }
+        } catch (error) {
+            console.error("Error fetching playlist:", error);
+        }
+    }
+
+    async function handleCopyClick(event) {
+        event.stopPropagation();
+        if (!auth.isGuest && auth.user) {
+            try {
+                const response = await fetch(`http://localhost:4000/store/playlist/${idNamePair._id}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Create a copy with new owner
+                    const copyData = {
+                        name: data.playlist.name + " (Copy)",
+                        songs: data.playlist.songs,
+                        ownerEmail: auth.user.email
+                    };
+                    const createResponse = await fetch('http://localhost:4000/store/playlist/', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(copyData)
+                    });
+                    if (createResponse.ok) {
+                        store.loadIdNamePairs();
+                    }
+                }
+            } catch (error) {
+                console.error("Error copying playlist:", error);
+            }
         }
     }
 
@@ -70,18 +116,12 @@ function PlaylistCard(props) {
         setText(event.target.value);
     }
 
-    // Check if current user owns this playlist
+    function handleExpand(event) {
+        event.stopPropagation();
+        setExpanded(!expanded);
+    }
+
     const isOwner = auth.user && idNamePair.ownerEmail === auth.user.email;
-
-    let selectClass = "unselected-list-card";
-    if (selected) {
-        selectClass = "selected-list-card";
-    }
-
-    let cardStatus = false;
-    if (store.isListNameEditActive) {
-        cardStatus = true;
-    }
 
     let cardElement =
         <ListItem
@@ -92,17 +132,15 @@ function PlaylistCard(props) {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                p: 1,
+                p: 2,
                 bgcolor: '#fffff1',
                 borderRadius: 2,
                 boxShadow: 1
             }}
             style={{ width: '100%' }}
-            button
-            onClick={(event) => handleLoadList(event, idNamePair._id)}
         >
             <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, cursor: 'pointer' }} onClick={(event) => handleLoadList(event, idNamePair._id)}>
                     <Box
                         sx={{
                             width: 40,
@@ -128,18 +166,62 @@ function PlaylistCard(props) {
                     </Box>
                 </Box>
                 
-                {/* Only show edit/delete for owners who are logged in */}
-                {!auth.isGuest && isOwner && (
-                    <Box>
-                        <IconButton onClick={handleToggleEdit} aria-label='edit'>
-                            <EditIcon style={{ fontSize: '24pt' }} />
-                        </IconButton>
-                        <IconButton onClick={(event) => handleDeleteList(event, idNamePair._id)} aria-label='delete'>
-                            <DeleteIcon style={{ fontSize: '24pt' }} />
-                        </IconButton>
-                    </Box>
-                )}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    {/* Delete - only for owners */}
+                    {!auth.isGuest && isOwner && (
+                        <Button
+                            variant="contained"
+                            size="small"
+                            color="error"
+                            onClick={(event) => handleDeleteList(event, idNamePair._id)}
+                        >
+                            Delete
+                        </Button>
+                    )}
+                    
+                    {/* Edit - only for owners */}
+                    {!auth.isGuest && isOwner && (
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={handleToggleEdit}
+                            sx={{ bgcolor: '#666' }}
+                        >
+                            Edit
+                        </Button>
+                    )}
+                    
+                    {/* Copy - for logged in users */}
+                    {!auth.isGuest && auth.loggedIn && (
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={handleCopyClick}
+                            sx={{ bgcolor: '#9C27B0' }}
+                        >
+                            Copy
+                        </Button>
+                    )}
+                    
+                    {/* Play - for everyone */}
+                    <Button
+                        variant="contained"
+                        size="small"
+                        color="success"
+                        onClick={handlePlayClick}
+                        startIcon={<PlayArrowIcon />}
+                    >
+                        Play
+                    </Button>
+                </Box>
             </Box>
+
+            {/* YouTube Player Modal */}
+            <YouTubePlayerModal
+                open={playModalOpen}
+                onClose={() => setPlayModalOpen(false)}
+                playlist={playlistData}
+            />
         </ListItem>
 
     if (editActive) {
@@ -162,9 +244,7 @@ function PlaylistCard(props) {
             />
     }
 
-    return (
-        cardElement
-    );
+    return cardElement;
 }
 
 export default PlaylistCard;
