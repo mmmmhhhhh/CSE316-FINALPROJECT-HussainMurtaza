@@ -1,16 +1,16 @@
 import React, { createContext, useEffect, useState } from "react";
-import { useHistory } from 'react-router-dom'
-import authRequestSender from './requests'
+import { useHistory } from 'react-router-dom';
+import storeRequestSender from '../store/requests';
 
 const AuthContext = createContext();
-console.log("create AuthContext: " + AuthContext);
 
 export const AuthActionType = {
     GET_LOGGED_IN: "GET_LOGGED_IN",
     LOGIN_USER: "LOGIN_USER",
     LOGOUT_USER: "LOGOUT_USER",
     REGISTER_USER: "REGISTER_USER",
-    LOGIN_GUEST: "LOGIN_GUEST"
+    SET_ERROR: "SET_ERROR",
+    SET_GUEST: "SET_GUEST"
 }
 
 function AuthContextProvider(props) {
@@ -18,16 +18,9 @@ function AuthContextProvider(props) {
         user: null,
         loggedIn: false,
         isGuest: false,
-        errorMessage: null
+        error: null
     });
     const history = useHistory();
-    
-    const setError = (message) => {
-        setAuth((prev) => ({
-            ...prev,
-            errorMessage: message
-        }));
-    };
 
     useEffect(() => {
         auth.getLoggedIn();
@@ -41,15 +34,15 @@ function AuthContextProvider(props) {
                     user: payload.user,
                     loggedIn: payload.loggedIn,
                     isGuest: false,
-                    errorMessage: null
+                    error: null
                 });
             }
             case AuthActionType.LOGIN_USER: {
                 return setAuth({
                     user: payload.user,
-                    loggedIn: payload.loggedIn,
+                    loggedIn: true,
                     isGuest: false,
-                    errorMessage: payload.errorMessage
+                    error: null
                 })
             }
             case AuthActionType.LOGOUT_USER: {
@@ -57,23 +50,29 @@ function AuthContextProvider(props) {
                     user: null,
                     loggedIn: false,
                     isGuest: false,
-                    errorMessage: null
+                    error: null
                 })
             }
             case AuthActionType.REGISTER_USER: {
                 return setAuth({
                     user: payload.user,
-                    loggedIn: payload.loggedIn,
+                    loggedIn: true,
                     isGuest: false,
-                    errorMessage: payload.errorMessage
+                    error: null
                 })
             }
-            case AuthActionType.LOGIN_GUEST: {
+            case AuthActionType.SET_ERROR: {
+                return setAuth({
+                    ...auth,
+                    error: payload.error
+                })
+            }
+            case AuthActionType.SET_GUEST: {
                 return setAuth({
                     user: null,
                     loggedIn: false,
                     isGuest: true,
-                    errorMessage: null
+                    error: null
                 })
             }
             default:
@@ -83,119 +82,95 @@ function AuthContextProvider(props) {
 
     auth.getLoggedIn = async function () {
         try {
-            const response = await authRequestSender.getLoggedIn();
+            const response = await storeRequestSender.getLoggedIn();
+            if (response.status === 200) {
+                authReducer({
+                    type: AuthActionType.GET_LOGGED_IN,
+                    payload: {
+                        loggedIn: response.data.loggedIn,
+                        user: response.data.user
+                    }
+                });
+            }
+        } catch (err) {
+            console.log("Not logged in");
+        }
+    }
+
+    auth.registerUser = async function(firstName, lastName, userName, email, password, passwordVerify) {
+        try {
+            const response = await storeRequestSender.register(firstName, lastName, userName, email, password, passwordVerify);
+            if (response.status === 200) {
+                authReducer({
+                    type: AuthActionType.REGISTER_USER,
+                    payload: {
+                        user: response.data.user
+                    }
+                })
+                history.push("/");
+            }
+        } catch (err) {
             authReducer({
-                type: AuthActionType.GET_LOGGED_IN,
+                type: AuthActionType.SET_ERROR,
                 payload: {
-                    loggedIn: response.loggedIn,
-                    user: response.user
-                }
-            });
-        } catch (error) {
-            authReducer({
-                type: AuthActionType.GET_LOGGED_IN,
-                payload: {
-                    loggedIn: false,
-                    user: null
+                    error: err.response?.data?.errorMessage || "Registration failed"
                 }
             });
         }
     }
 
-    auth.registerUser = async function (firstName, lastName, email, password, passwordVerify) {
-        console.log("REGISTERING USER");
+    auth.loginUser = async function(email, password) {
         try {
-            const response = await authRequestSender.registerUser(firstName, lastName, email, password, passwordVerify);
-            console.log("Registered Successfully");
+            const response = await storeRequestSender.login(email, password);
+            if (response.status === 200) {
+                authReducer({
+                    type: AuthActionType.LOGIN_USER,
+                    payload: {
+                        user: response.data.user
+                    }
+                })
+                history.push("/");
+            }
+        } catch (err) {
             authReducer({
-                type: AuthActionType.REGISTER_USER,
+                type: AuthActionType.SET_ERROR,
                 payload: {
-                    user: response.user,
-                    loggedIn: true,
-                    errorMessage: null
+                    error: err.response?.data?.errorMessage || "Login failed"
                 }
-            })
-            history.push("/login");
-            console.log("NOW WE LOGIN");
-            auth.loginUser(email, password);
-            console.log("LOGGED IN");
-        } catch (error) {
-            authReducer({
-                type: AuthActionType.REGISTER_USER,
-                payload: {
-                    user: auth.user,
-                    loggedIn: false,
-                    errorMessage: error.message || "Registration failed"
-                }
-            })
+            });
         }
     }
 
-    auth.loginUser = async function (email, password) {
+    auth.logoutUser = async function() {
         try {
-            const response = await authRequestSender.loginUser(email, password);
+            await storeRequestSender.logout();
             authReducer({
-                type: AuthActionType.LOGIN_USER,
-                payload: {
-                    user: response.user,
-                    loggedIn: true,
-                    errorMessage: null
-                }
+                type: AuthActionType.LOGOUT_USER,
+                payload: null
             })
             history.push("/");
-        } catch (error) {
-            authReducer({
-                type: AuthActionType.LOGIN_USER,
-                payload: {
-                    user: auth.user,
-                    loggedIn: false,
-                    errorMessage: error.message || "Login failed"
-                }
-            })
+        } catch (err) {
+            console.log("Logout error:", err);
         }
     }
 
-    auth.loginAsGuest = function () {
+    auth.continueAsGuest = function() {
         authReducer({
-            type: AuthActionType.LOGIN_GUEST,
+            type: AuthActionType.SET_GUEST,
             payload: null
-        })
+        });
         history.push("/");
     }
 
-    auth.logoutUser = async function () {
-        try {
-            await authRequestSender.logoutUser();
-            authReducer({
-                type: AuthActionType.LOGOUT_USER,
-                payload: null
-            })
-            history.push("/");
-        } catch (error) {
-            console.error("Logout error:", error);
-            // Even if logout fails on server, clear local state
-            authReducer({
-                type: AuthActionType.LOGOUT_USER,
-                payload: null
-            })
-            history.push("/");
-        }
-    }
-
-    auth.getUserInitials = function () {
-        let initials = "";
-        if (auth.user) {
-            initials += auth.user.firstName.charAt(0);
-            initials += auth.user.lastName.charAt(0);
-        }
-        return initials;
+    auth.clearError = function() {
+        authReducer({
+            type: AuthActionType.SET_ERROR,
+            payload: { error: null }
+        });
     }
 
     return (
-        <AuthContext.Provider value={{
-            auth,
-            setError
-        }}>
+        <AuthContext.Provider value={{ auth }}>
             {props.children}
         </AuthContext.Provider>
     );

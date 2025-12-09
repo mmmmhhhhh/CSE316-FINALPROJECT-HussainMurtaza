@@ -44,6 +44,11 @@ export default function AppBanner() {
         history.push('/register');
     };
 
+    const handleEditAccount = () => {
+        handleMenuClose();
+        history.push('/edit-account');
+    };
+
     const handleExitGuest = () => {
         handleMenuClose();
         auth.logoutUser();
@@ -69,6 +74,7 @@ export default function AppBanner() {
             open={isMenuOpen}
             onClose={handleMenuClose}
         >
+            <MenuItem onClick={handleEditAccount}>Edit Account</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
     );
@@ -110,7 +116,7 @@ export default function AppBanner() {
     if (auth.loggedIn && auth.user) {
         userDisplay = auth.user.firstName.charAt(0) + auth.user.lastName.charAt(0);
     } else if (auth.isGuest) {
-        userDisplay = "Guest";
+        userDisplay = "G";
     }
 
     return (
@@ -172,7 +178,7 @@ export default function AppBanner() {
                             justifyContent: 'center',
                             color: 'white',
                             fontWeight: 'bold',
-                            fontSize: auth.isGuest ? '10px' : '14px'
+                            fontSize: '14px'
                         }}
                     >
                         {userDisplay}

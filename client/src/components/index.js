@@ -1,5 +1,6 @@
 import AppBanner from './AppBanner'
 import Copyright from './Copyright'
+import EditAccountScreen from './EditAccountScreen'
 import EditToolbar from './EditToolbar'
 import HomeScreen from './HomeScreen'
 import HomeWrapper from './HomeWrapper'
@@ -20,6 +21,7 @@ import YouTubePlayerModal from './YouTubePlayerModal'
 export { 
     AppBanner,
     Copyright,
+    EditAccountScreen,
     EditToolbar,
     HomeScreen,
     HomeWrapper,
