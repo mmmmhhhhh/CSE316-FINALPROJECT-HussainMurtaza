@@ -2,15 +2,11 @@ import { useContext, useState } from 'react'
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth'
 import Box from '@mui/material/Box';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import IconButton from '@mui/material/IconButton';
 import ListItem from '@mui/material/ListItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import YouTubePlayerModal from './YouTubePlayerModal';
 
 function PlaylistCard(props) {
@@ -18,25 +14,21 @@ function PlaylistCard(props) {
     const { auth } = useContext(AuthContext);
     const [editActive, setEditActive] = useState(false);
     const [text, setText] = useState("");
-    const [expanded, setExpanded] = useState(false);
     const [playModalOpen, setPlayModalOpen] = useState(false);
     const [playlistData, setPlaylistData] = useState(null);
-    const { idNamePair, selected } = props;
+    const { idNamePair } = props;
+
+    const isOwner = auth.user && idNamePair.ownerEmail === auth.user.email;
 
     function handleLoadList(event, id) {
         event.stopPropagation();
-        if (!event.target.disabled) {
-            if (auth.isGuest) {
-                store.viewPlaylist(id);
-            } else {
-                store.setCurrentList(id);
-            }
-        }
+        // Use viewPlaylist for everyone - it just loads without trying to update
+        store.viewPlaylist(id);
     }
 
     function handleToggleEdit(event) {
         event.stopPropagation();
-        if (!auth.isGuest) {
+        if (!auth.isGuest && isOwner) {
             toggleEdit();
         }
     }
@@ -51,14 +43,13 @@ function PlaylistCard(props) {
 
     async function handleDeleteList(event, id) {
         event.stopPropagation();
-        if (!auth.isGuest) {
+        if (!auth.isGuest && isOwner) {
             store.markListForDeletion(id);
         }
     }
 
     async function handlePlayClick(event) {
         event.stopPropagation();
-        // Fetch full playlist data
         try {
             const response = await fetch(`http://localhost:4000/store/playlist/${idNamePair._id}`, {
                 credentials: 'include'
@@ -82,7 +73,6 @@ function PlaylistCard(props) {
                 });
                 const data = await response.json();
                 if (data.success) {
-                    // Create a copy with new owner
                     const copyData = {
                         name: data.playlist.name + " (Copy)",
                         songs: data.playlist.songs,
@@ -95,7 +85,7 @@ function PlaylistCard(props) {
                         body: JSON.stringify(copyData)
                     });
                     if (createResponse.ok) {
-                        store.loadIdNamePairs();
+                        store.loadAllPlaylists();
                     }
                 }
             } catch (error) {
@@ -116,13 +106,6 @@ function PlaylistCard(props) {
         setText(event.target.value);
     }
 
-    function handleExpand(event) {
-        event.stopPropagation();
-        setExpanded(!expanded);
-    }
-
-    const isOwner = auth.user && idNamePair.ownerEmail === auth.user.email;
-
     let cardElement =
         <ListItem
             id={idNamePair._id}
@@ -140,7 +123,10 @@ function PlaylistCard(props) {
             style={{ width: '100%' }}
         >
             <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, cursor: 'pointer' }} onClick={(event) => handleLoadList(event, idNamePair._id)}>
+                <Box 
+                    sx={{ display: 'flex', alignItems: 'center', gap: 2, cursor: 'pointer', flex: 1 }} 
+                    onClick={(event) => handleLoadList(event, idNamePair._id)}
+                >
                     <Box
                         sx={{
                             width: 40,

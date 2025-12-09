@@ -48,7 +48,6 @@ function GlobalStoreContextProvider(props) {
         listMarkedForDeletion: null
     });
     const history = useHistory();
-
     const { auth } = useContext(AuthContext);
 
     const storeReducer = (action) => {
@@ -227,11 +226,14 @@ function GlobalStoreContextProvider(props) {
         async function asyncLoadAllPlaylists() {
             const response = await storeRequestSender.getAllPlaylists();
             if (response.success) {
+                // FIXED: Include songs array for search functionality
                 let playlistsArray = response.playlists.map(playlist => ({
                     _id: playlist._id,
                     name: playlist.name,
                     ownerEmail: playlist.ownerEmail,
-                    createdAt: playlist.createdAt
+                    createdAt: playlist.createdAt,
+                    songs: playlist.songs || [],  // Include songs!
+                    listeners: playlist.listeners || 0
                 }));
                 storeReducer({
                     type: GlobalStoreActionType.LOAD_ALL_PLAYLISTS,
