@@ -77,7 +77,6 @@ deletePlaylist = async (req, res) => {
     }
 };
 
-// PUBLIC - Anyone can view a playlist by ID
 getPlaylistById = async (req, res) => {
     console.log("Find Playlist with id: " + JSON.stringify(req.params.id));
 
@@ -143,7 +142,6 @@ getPlaylistPairs = async (req, res) => {
     }
 };
 
-// PUBLIC - Anyone can get all playlists
 getAllPlaylists = async (req, res) => {
     console.log("getAllPlaylists - public access");
     
@@ -222,7 +220,6 @@ updatePlaylist = async (req, res) => {
     }
 };
 
-// PUBLIC - Increment listeners count when playlist is played
 incrementListeners = async (req, res) => {
     console.log("incrementListeners for playlist: " + req.params.id);
     
@@ -236,24 +233,23 @@ incrementListeners = async (req, res) => {
             });
         }
 
-        // Increment listeners and listens count
-        const currentListeners = playlist.listeners || 0;
-        const currentListens = playlist.listens || 0;
+        const currentListenerCount = playlist.listenerCount || 0;
+        const currentListenCount = playlist.listenCount || 0;
         
         const updatedPlaylist = await dbManager.updatePlaylist(
             req.params.id,
             {
                 name: playlist.name,
                 songs: playlist.songs,
-                listeners: currentListeners + 1,
-                listens: currentListens + 1
+                listenerCount: currentListenerCount + 1,
+                listenCount: currentListenCount + 1
             }
         );
 
         return res.status(200).json({
             success: true,
-            listeners: currentListeners + 1,
-            listens: currentListens + 1
+            listenerCount: currentListenerCount + 1,
+            listenCount: currentListenCount + 1
         });
     } catch (err) {
         console.error(err);

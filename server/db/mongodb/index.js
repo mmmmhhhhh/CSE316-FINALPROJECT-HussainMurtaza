@@ -48,8 +48,8 @@ class MongoDBManager extends DatabaseManager {
                     }],
                     required: true
                 },
-                listeners: { type: Number, required: false, default: 0 },
-                listens: { type: Number, required: false, default: 0 }
+                listenerCount: { type: Number, required: false, default: 0 },
+                listenCount: { type: Number, required: false, default: 0 }
             },
             { timestamps: true }
         );
@@ -63,7 +63,7 @@ class MongoDBManager extends DatabaseManager {
      */
     async connect(connectionString) {
         try {
-            await mongoose.connect(connectionString, { useNewUrlParser: true });
+            await mongoose.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
             this.connection = mongoose.connection;
             this.initializeModels();
             console.log('MongoDB connected successfully');
@@ -154,11 +154,11 @@ class MongoDBManager extends DatabaseManager {
         if (updateData.songs !== undefined) {
             playlist.songs = updateData.songs;
         }
-        if (updateData.listeners !== undefined) {
-            playlist.listeners = updateData.listeners;
+        if (updateData.listenerCount !== undefined) {
+            playlist.listenerCount = updateData.listenerCount;
         }
-        if (updateData.listens !== undefined) {
-            playlist.listens = updateData.listens;
+        if (updateData.listenCount !== undefined) {
+            playlist.listenCount = updateData.listenCount;
         }
         await playlist.save();
         return playlist;

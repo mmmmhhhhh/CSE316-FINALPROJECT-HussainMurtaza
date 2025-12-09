@@ -233,7 +233,7 @@ function GlobalStoreContextProvider(props) {
                     ownerEmail: playlist.ownerEmail,
                     createdAt: playlist.createdAt,
                     songs: playlist.songs || [],  // Include songs!
-                    listeners: playlist.listeners || 0
+                    listenerCount: playlist.listenerCount || 0
                 }));
                 storeReducer({
                     type: GlobalStoreActionType.LOAD_ALL_PLAYLISTS,

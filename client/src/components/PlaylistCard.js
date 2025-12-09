@@ -51,7 +51,6 @@ function PlaylistCard(props) {
     async function handlePlayClick(event) {
         event.stopPropagation();
         try {
-            // Fetch full playlist data
             const response = await fetch(`http://localhost:4000/store/playlist/${idNamePair._id}`, {
                 credentials: 'include'
             });
@@ -60,7 +59,7 @@ function PlaylistCard(props) {
                 setPlaylistData(data.playlist);
                 setPlayModalOpen(true);
                 
-                // Increment listeners count
+                // Increment listener count
                 await fetch(`http://localhost:4000/store/playlist/${idNamePair._id}/listen`, {
                     method: 'PUT',
                     credentials: 'include'
@@ -159,14 +158,13 @@ function PlaylistCard(props) {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#999' }}>
                             <HeadphonesIcon sx={{ fontSize: 14 }} />
                             <Typography variant="caption">
-                                {idNamePair.listeners || 0} listeners
+                                {idNamePair.listenerCount || 0} listeners
                             </Typography>
                         </Box>
                     </Box>
                 </Box>
                 
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                    {/* Delete - only for owners */}
                     {!auth.isGuest && isOwner && (
                         <Button
                             variant="contained"
@@ -178,7 +176,6 @@ function PlaylistCard(props) {
                         </Button>
                     )}
                     
-                    {/* Edit - only for owners */}
                     {!auth.isGuest && isOwner && (
                         <Button
                             variant="contained"
@@ -190,7 +187,6 @@ function PlaylistCard(props) {
                         </Button>
                     )}
                     
-                    {/* Copy - for logged in users */}
                     {!auth.isGuest && auth.loggedIn && (
                         <Button
                             variant="contained"
@@ -202,7 +198,6 @@ function PlaylistCard(props) {
                         </Button>
                     )}
                     
-                    {/* Play - for everyone */}
                     <Button
                         variant="contained"
                         size="small"
@@ -215,7 +210,6 @@ function PlaylistCard(props) {
                 </Box>
             </Box>
 
-            {/* YouTube Player Modal */}
             <YouTubePlayerModal
                 open={playModalOpen}
                 onClose={() => setPlayModalOpen(false)}
