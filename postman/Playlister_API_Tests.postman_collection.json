@@ -1,0 +1,198 @@
+{
+  "info": {
+    "name": "Playlister API Tests",
+    "description": "API tests for CSE 316 Playlister Final Project - Murtaza Hussain",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"userName\": \"testuser\",\n  \"email\": \"newuser@test.com\",\n  \"password\": \"password123\",\n  \"passwordVerify\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/auth/register",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "2. Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/auth/login",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Logged In User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:4000/auth/loggedIn",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "loggedIn"]
+            }
+          }
+        },
+        {
+          "name": "4. Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Name\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/auth/update",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "update"]
+            }
+          }
+        },
+        {
+          "name": "5. Logout User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:4000/auth/logout",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Playlists",
+      "item": [
+        {
+          "name": "1. Get All Playlists (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:4000/store/playlists",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["store", "playlists"]
+            }
+          }
+        },
+        {
+          "name": "2. Create Playlist (Auth Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Test Playlist\",\n  \"songs\": [],\n  \"ownerEmail\": \"newuser@test.com\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/store/playlist",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["store", "playlist"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Playlist By ID (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:4000/store/playlist/REPLACE_WITH_PLAYLIST_ID",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["store", "playlist", "REPLACE_WITH_PLAYLIST_ID"]
+            }
+          }
+        },
+        {
+          "name": "4. Update Playlist (Auth Required)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playlist\": {\n    \"name\": \"Updated Playlist\",\n    \"songs\": [\n      {\n        \"title\": \"Never Gonna Give You Up\",\n        \"artist\": \"Rick Astley\",\n        \"year\": 1987,\n        \"youTubeId\": \"dQw4w9WgXcQ\"\n      }\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/store/playlist/REPLACE_WITH_PLAYLIST_ID",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["store", "playlist", "REPLACE_WITH_PLAYLIST_ID"]
+            }
+          }
+        },
+        {
+          "name": "5. Increment Listeners (Public)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "http://localhost:4000/store/playlist/REPLACE_WITH_PLAYLIST_ID/listen",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["store", "playlist", "REPLACE_WITH_PLAYLIST_ID", "listen"]
+            }
+          }
+        },
+        {
+          "name": "6. Delete Playlist (Auth Required)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "http://localhost:4000/store/playlist/REPLACE_WITH_PLAYLIST_ID",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["store", "playlist", "REPLACE_WITH_PLAYLIST_ID"]
+            }
+          }
+        },
+        {
+          "name": "7. Get Playlist Pairs (Auth Required)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:4000/store/playlistpairs",
+              "host": ["localhost"],
+              "port": "4000",
+              "path": ["store", "playlistpairs"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

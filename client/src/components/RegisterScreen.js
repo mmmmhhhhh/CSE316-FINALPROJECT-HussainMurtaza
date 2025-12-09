@@ -22,14 +22,14 @@ export default function RegisterScreen() {
         const formData = new FormData(event.currentTarget);
         const firstName = formData.get('firstName');
         const lastName = formData.get('lastName');
-        const userName = formData.get('userName');
+        const userName = formData.get('userName') || '';
         const email = formData.get('email');
         const password = formData.get('password');
         const passwordVerify = formData.get('passwordVerify');
 
         // Validation
-        if (!firstName || !lastName || !userName || !email || !password || !passwordVerify) {
-            setError('Please fill in all fields');
+        if (!firstName || !lastName || !email || !password || !passwordVerify) {
+            setError('Please fill in all required fields');
             return;
         }
 
@@ -102,10 +102,9 @@ export default function RegisterScreen() {
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
-                                required
                                 fullWidth
                                 id="userName"
-                                label="User Name"
+                                label="User Name (optional)"
                                 name="userName"
                                 autoComplete="username"
                             />

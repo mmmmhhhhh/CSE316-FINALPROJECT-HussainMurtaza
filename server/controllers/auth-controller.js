@@ -21,7 +21,9 @@ getLoggedIn = async (req, res) => {
             user: {
                 firstName: loggedInUser.firstName,
                 lastName: loggedInUser.lastName,
-                email: loggedInUser.email
+                userName: loggedInUser.userName || '',
+                email: loggedInUser.email,
+                avatar: loggedInUser.avatar || ''
             }
         });
     } catch (err) {
@@ -63,21 +65,22 @@ loginUser = async (req, res) => {
         }
 
         // LOGIN THE USER
-        // For MongoDB, use _id; for PostgreSQL, use id
         const userId = existingUser._id || existingUser.id;
         const token = auth.signToken(userId);
         console.log(token);
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: false,   //  Use false while running locally
-            sameSite: 'lax'  //  Proper value for local dev
+            secure: false,
+            sameSite: 'lax'
         }).status(200).json({
             success: true,
             user: {
                 firstName: existingUser.firstName,
                 lastName: existingUser.lastName,
-                email: existingUser.email
+                userName: existingUser.userName || '',
+                email: existingUser.email,
+                avatar: existingUser.avatar || ''
             }
         });
 
@@ -91,16 +94,16 @@ logoutUser = async (req, res) => {
     res.cookie("token", "", {
         httpOnly: true,
         expires: new Date(0),
-        secure: true,
-        sameSite: "none"
-    }).send();
+        secure: false,
+        sameSite: "lax"
+    }).status(200).send();
 };
 
 registerUser = async (req, res) => {
     console.log("REGISTERING USER IN BACKEND");
     try {
-        const { firstName, lastName, email, password, passwordVerify } = req.body;
-        console.log("create user: " + firstName + " " + lastName + " " + email + " " + password + " " + passwordVerify);
+        const { firstName, lastName, userName, email, password, passwordVerify, avatar } = req.body;
+        console.log("create user: " + firstName + " " + lastName + " " + email);
         
         if (!firstName || !lastName || !email || !password || !passwordVerify) {
             return res
@@ -145,9 +148,11 @@ registerUser = async (req, res) => {
 
         const savedUser = await dbManager.createUser({ 
             firstName, 
-            lastName, 
+            lastName,
+            userName: userName || '',
             email, 
-            passwordHash 
+            passwordHash,
+            avatar: avatar || ''
         });
         console.log("new user saved: " + (savedUser._id || savedUser.id));
 
@@ -156,16 +161,18 @@ registerUser = async (req, res) => {
         const token = auth.signToken(userId);
         console.log("token:" + token);
 
-        await res.cookie("token", token, {
+        res.cookie("token", token, {
             httpOnly: true,
-            secure: true,
-            sameSite: "none"
+            secure: false,
+            sameSite: "lax"
         }).status(200).json({
             success: true,
             user: {
                 firstName: savedUser.firstName,
                 lastName: savedUser.lastName,
-                email: savedUser.email
+                userName: savedUser.userName || '',
+                email: savedUser.email,
+                avatar: savedUser.avatar || ''
             }
         });
 
@@ -177,9 +184,89 @@ registerUser = async (req, res) => {
     }
 };
 
+updateUser = async (req, res) => {
+    console.log("UPDATING USER");
+    try {
+        let userId = auth.verifyUser(req);
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                errorMessage: "Not authenticated"
+            });
+        }
+
+        const { firstName, lastName, userName, currentPassword, newPassword, avatar } = req.body;
+
+        const existingUser = await dbManager.findUserById(userId);
+        if (!existingUser) {
+            return res.status(404).json({
+                success: false,
+                errorMessage: "User not found"
+            });
+        }
+
+        // If changing password, verify current password
+        if (newPassword) {
+            if (!currentPassword) {
+                return res.status(400).json({
+                    success: false,
+                    errorMessage: "Current password required to change password"
+                });
+            }
+
+            const passwordCorrect = await bcrypt.compare(currentPassword, existingUser.passwordHash);
+            if (!passwordCorrect) {
+                return res.status(401).json({
+                    success: false,
+                    errorMessage: "Current password is incorrect"
+                });
+            }
+
+            if (newPassword.length < 8) {
+                return res.status(400).json({
+                    success: false,
+                    errorMessage: "New password must be at least 8 characters"
+                });
+            }
+
+            // Hash new password
+            const saltRounds = 10;
+            const salt = await bcrypt.genSalt(saltRounds);
+            existingUser.passwordHash = await bcrypt.hash(newPassword, salt);
+        }
+
+        // Update fields
+        if (firstName) existingUser.firstName = firstName;
+        if (lastName) existingUser.lastName = lastName;
+        if (userName !== undefined) existingUser.userName = userName;
+        if (avatar !== undefined) existingUser.avatar = avatar;
+
+        await existingUser.save();
+
+        return res.status(200).json({
+            success: true,
+            user: {
+                firstName: existingUser.firstName,
+                lastName: existingUser.lastName,
+                userName: existingUser.userName || '',
+                email: existingUser.email,
+                avatar: existingUser.avatar || ''
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            errorMessage: "Server error"
+        });
+    }
+};
+
 module.exports = {
     getLoggedIn,
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    updateUser
 };

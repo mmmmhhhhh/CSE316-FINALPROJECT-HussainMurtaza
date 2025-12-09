@@ -25,8 +25,10 @@ class MongoDBManager extends DatabaseManager {
             {
                 firstName: { type: String, required: true },
                 lastName: { type: String, required: true },
+                userName: { type: String, required: false, default: '' },
                 email: { type: String, required: true },
                 passwordHash: { type: String, required: true },
+                avatar: { type: String, required: false, default: '' },
                 playlists: [{ type: ObjectId, ref: 'Playlist' }]
             },
             { timestamps: true }
@@ -45,7 +47,9 @@ class MongoDBManager extends DatabaseManager {
                         youTubeId: String
                     }],
                     required: true
-                }
+                },
+                listeners: { type: Number, required: false, default: 0 },
+                listens: { type: Number, required: false, default: 0 }
             },
             { timestamps: true }
         );
@@ -149,6 +153,12 @@ class MongoDBManager extends DatabaseManager {
         }
         if (updateData.songs !== undefined) {
             playlist.songs = updateData.songs;
+        }
+        if (updateData.listeners !== undefined) {
+            playlist.listeners = updateData.listeners;
+        }
+        if (updateData.listens !== undefined) {
+            playlist.listens = updateData.listens;
         }
         await playlist.save();
         return playlist;

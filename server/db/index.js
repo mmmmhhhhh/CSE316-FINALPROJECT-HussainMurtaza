@@ -9,7 +9,7 @@ if (databaseType === 'mongodb') {
     const MongoDBManager = require('./mongodb');
     dbManager = new MongoDBManager();
     dbManager.connect(process.env.DB_CONNECT)
-        .then(() => console.log(`Using MongoDB database`))
+        .then(() => console.log('Using MongoDB database'))
         .catch(e => console.error('Database connection error:', e.message));
 } else if (databaseType === 'postgresql') {
     const PostgreSQLManager = require('./postgresql');
@@ -21,7 +21,7 @@ if (databaseType === 'mongodb') {
         process.env.PG_PASSWORD,
         parseInt(process.env.PG_PORT)
     )
-        .then(() => console.log(`Using PostgreSQL database`))
+        .then(() => console.log('Using PostgreSQL database'))
         .catch(e => console.error('Database connection error:', e.message));
 } else {
     throw new Error(`Unknown DATABASE_TYPE: ${databaseType}. Must be 'mongodb' or 'postgresql'`);

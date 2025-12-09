@@ -222,11 +222,54 @@ updatePlaylist = async (req, res) => {
     }
 };
 
+// PUBLIC - Increment listeners count when playlist is played
+incrementListeners = async (req, res) => {
+    console.log("incrementListeners for playlist: " + req.params.id);
+    
+    try {
+        const playlist = await dbManager.findPlaylistById(req.params.id);
+        
+        if (!playlist) {
+            return res.status(404).json({
+                success: false,
+                error: 'Playlist not found'
+            });
+        }
+
+        // Increment listeners and listens count
+        const currentListeners = playlist.listeners || 0;
+        const currentListens = playlist.listens || 0;
+        
+        const updatedPlaylist = await dbManager.updatePlaylist(
+            req.params.id,
+            {
+                name: playlist.name,
+                songs: playlist.songs,
+                listeners: currentListeners + 1,
+                listens: currentListens + 1
+            }
+        );
+
+        return res.status(200).json({
+            success: true,
+            listeners: currentListeners + 1,
+            listens: currentListens + 1
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            error: 'Error updating listeners'
+        });
+    }
+};
+
 module.exports = {
     createPlaylist,
     deletePlaylist,
     getPlaylistById,
     getPlaylistPairs,
     getAllPlaylists,
-    updatePlaylist
+    updatePlaylist,
+    incrementListeners
 };

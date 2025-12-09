@@ -4,21 +4,20 @@ import AuthContext from '../auth';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import MusicNoteIcon from '@mui/icons-material/MusicNote';
 
 export default function SplashScreen() {
     const { auth } = useContext(AuthContext);
     const history = useHistory();
 
     const handleContinueAsGuest = () => {
-        auth.loginAsGuest();
+        auth.continueAsGuest();
     };
 
     const handleLogin = () => {
         history.push('/login');
     };
 
-    const handleCreateAccount = () => {
+    const handleRegister = () => {
         history.push('/register');
     };
 
@@ -29,137 +28,45 @@ export default function SplashScreen() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: 'calc(100vh - 64px)',
-                backgroundColor: '#f5f0ff',
-                padding: 4
+                minHeight: '80vh',
+                textAlign: 'center',
+                p: 3
             }}
         >
-            {/* Main Card */}
-            <Box
-                sx={{
-                    backgroundColor: '#fffef0',
-                    borderRadius: 2,
-                    padding: 6,
-                    textAlign: 'center',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    maxWidth: 500,
-                    width: '100%'
-                }}
-            >
-                {/* Title */}
-                <Typography
-                    variant="h3"
-                    sx={{
-                        color: '#c41bf0',
-                        fontWeight: 'bold',
-                        marginBottom: 3
-                    }}
-                >
-                    The Playlister
-                </Typography>
+            <Typography variant="h2" sx={{ mb: 2, fontWeight: 'bold', color: '#8B5CF6' }}>
+                Welcome to Playlister
+            </Typography>
+            <Typography variant="h5" sx={{ mb: 4, color: '#666' }}>
+                Create, share, and discover amazing playlists
+            </Typography>
 
-                {/* Music Icon/Logo */}
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        marginBottom: 4
-                    }}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '300px' }}>
+                <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleContinueAsGuest}
+                    sx={{ bgcolor: '#666' }}
                 >
-                    <Box
-                        sx={{
-                            backgroundColor: '#000',
-                            borderRadius: '50%',
-                            width: 60,
-                            height: 60,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            position: 'relative'
-                        }}
-                    >
-                        <MusicNoteIcon sx={{ color: '#fff', fontSize: 30 }} />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            marginLeft: 1,
-                            gap: 0.5
-                        }}
-                    >
-                        <Box sx={{ width: 40, height: 6, backgroundColor: '#000', borderRadius: 1 }} />
-                        <Box sx={{ width: 40, height: 6, backgroundColor: '#000', borderRadius: 1 }} />
-                        <Box sx={{ width: 40, height: 6, backgroundColor: '#000', borderRadius: 1 }} />
-                    </Box>
-                </Box>
-
-                {/* Buttons */}
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: 2,
-                        flexWrap: 'wrap'
-                    }}
+                    Continue as Guest
+                </Button>
+                <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleLogin}
+                    sx={{ bgcolor: '#8B5CF6' }}
                 >
-                    <Button
-                        variant="contained"
-                        onClick={handleContinueAsGuest}
-                        sx={{
-                            backgroundColor: '#333',
-                            color: '#fff',
-                            textTransform: 'none',
-                            padding: '10px 20px',
-                            '&:hover': {
-                                backgroundColor: '#555'
-                            }
-                        }}
-                    >
-                        Continue as Guest
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={handleLogin}
-                        sx={{
-                            backgroundColor: '#333',
-                            color: '#fff',
-                            textTransform: 'none',
-                            padding: '10px 20px',
-                            '&:hover': {
-                                backgroundColor: '#555'
-                            }
-                        }}
-                    >
-                        Login
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={handleCreateAccount}
-                        sx={{
-                            backgroundColor: '#333',
-                            color: '#fff',
-                            textTransform: 'none',
-                            padding: '10px 20px',
-                            '&:hover': {
-                                backgroundColor: '#555'
-                            }
-                        }}
-                    >
-                        Create Account
-                    </Button>
-                </Box>
+                    Login
+                </Button>
+                <Button
+                    variant="outlined"
+                    size="large"
+                    onClick={handleRegister}
+                >
+                    Create Account
+                </Button>
             </Box>
 
-            {/* Copyright */}
-            <Typography
-                variant="body2"
-                sx={{
-                    marginTop: 4,
-                    color: '#666'
-                }}
-            >
+            <Typography variant="body2" sx={{ mt: 4, color: '#999' }}>
                 Copyright © Playlister 2025
             </Typography>
         </Box>

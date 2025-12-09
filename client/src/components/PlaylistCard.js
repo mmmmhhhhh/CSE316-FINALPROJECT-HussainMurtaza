@@ -7,6 +7,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import HeadphonesIcon from '@mui/icons-material/Headphones';
 import YouTubePlayerModal from './YouTubePlayerModal';
 
 function PlaylistCard(props) {
@@ -22,7 +23,6 @@ function PlaylistCard(props) {
 
     function handleLoadList(event, id) {
         event.stopPropagation();
-        // Use viewPlaylist for everyone - it just loads without trying to update
         store.viewPlaylist(id);
     }
 
@@ -51,6 +51,7 @@ function PlaylistCard(props) {
     async function handlePlayClick(event) {
         event.stopPropagation();
         try {
+            // Fetch full playlist data
             const response = await fetch(`http://localhost:4000/store/playlist/${idNamePair._id}`, {
                 credentials: 'include'
             });
@@ -58,6 +59,12 @@ function PlaylistCard(props) {
             if (data.success) {
                 setPlaylistData(data.playlist);
                 setPlayModalOpen(true);
+                
+                // Increment listeners count
+                await fetch(`http://localhost:4000/store/playlist/${idNamePair._id}/listen`, {
+                    method: 'PUT',
+                    credentials: 'include'
+                });
             }
         } catch (error) {
             console.error("Error fetching playlist:", error);
@@ -149,6 +156,12 @@ function PlaylistCard(props) {
                         <Typography variant="body2" sx={{ color: '#666' }}>
                             {idNamePair.ownerEmail || 'Unknown Owner'}
                         </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#999' }}>
+                            <HeadphonesIcon sx={{ fontSize: 14 }} />
+                            <Typography variant="caption">
+                                {idNamePair.listeners || 0} listeners
+                            </Typography>
+                        </Box>
                     </Box>
                 </Box>
                 

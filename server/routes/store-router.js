@@ -12,5 +12,6 @@ router.get('/playlistpairs', auth.verify, StoreController.getPlaylistPairs)
 // Public routes (guests can access)
 router.get('/playlists', StoreController.getAllPlaylists)
 router.get('/playlist/:id', StoreController.getPlaylistById)
+router.put('/playlist/:id/listen', StoreController.incrementListeners)
 
 module.exports = router
